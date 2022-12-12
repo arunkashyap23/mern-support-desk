@@ -5,7 +5,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import Spinner from "../components/Spinner";
-import { getTicket, reset, closeTicket } from "../features/tickets/ticketSlice";
+import { getNotes, createNote, reset } from "../features/notes/noteSlice";
+import {
+  getTicket,
+  closeTicket,
+  reset as ticketReset,
+} from "../features/tickets/ticketSlice";
+import NoteItem from "../components/NoteItem.jsx";
+import Modal from "react-modal";
 
 const customStyles = {
   content: {
@@ -20,10 +27,19 @@ const customStyles = {
   },
 };
 
+Modal.setAppElement("#root");
+
 const Ticket = () => {
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
   const { ticket, isLoading, isError, message } = useSelector(
     (state) => state.tickets
   );
+  const {
+    notes,
+    isLoading: notesIsLoading,
+    isSuccess,
+  } = useSelector((state) => state.notes);
   const dispatch = useDispatch();
 
   const { ticketId } = useParams();
@@ -33,9 +49,26 @@ const Ticket = () => {
     if (isError) {
       toast.error(message);
     }
-    // eslint-disabled-next-line
     dispatch(getTicket(ticketId));
+    dispatch(getNotes(ticketId));
   }, [isError, message, ticketId, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      if (isSuccess) {
+        dispatch(reset());
+        dispatch(ticketReset());
+      }
+    };
+  }, [dispatch, isSuccess]);
+
+  const openModal = () => {
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+  };
 
   const onTicketClose = () => {
     dispatch(closeTicket(ticketId));
@@ -43,7 +76,14 @@ const Ticket = () => {
     navigate("/tickets");
   };
 
-  if (isLoading) {
+  //create note submit
+  const onNoteSubmit = (e) => {
+    e.preventDefault();
+    dispatch(createNote({ noteText, ticketId }));
+    closeModal();
+  };
+
+  if (isLoading || notesIsLoading) {
     return <Spinner />;
   }
 
@@ -69,11 +109,45 @@ const Ticket = () => {
         <h2>Notes</h2>
       </header>
 
-      {/* {ticket.status !== "closed" && (
+      {ticket.status !== "closed" && (
         <button onClick={openModal} className="btn">
           <FaPlus /> Add Note
         </button>
-      )} */}
+      )}
+
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        style={customStyles}
+        contentLabel="Add Note"
+      >
+        <h2>Add Note</h2>
+        <button className="btn-close" onClick={closeModal}>
+          X
+        </button>
+        <form onSubmit={onNoteSubmit}>
+          <div className="form-group">
+            <textarea
+              name="noteText"
+              id="noteText"
+              className="form-control"
+              placeholder="Note text"
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+            ></textarea>
+          </div>
+          <div className="form-group">
+            <button className="btn" type="submit">
+              Submit
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {notes.map((note) => (
+        <NoteItem key={note._id} note={note} />
+      ))}
+
       {ticket.status !== "closed" && (
         <button onClick={onTicketClose} className="btn btn-block btn-danger">
           Close Ticket

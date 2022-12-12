@@ -7,8 +7,12 @@ import {
   updateTicket,
 } from "../controllers/ticketController.js";
 import protect from "../middleware/authMiddleware.js";
+import noteRouter from "./noteRoutes.js";
 
 const ticketRouter = express.Router();
+
+//Re-route into noteRouter
+ticketRouter.use("/:ticketId/notes", noteRouter);
 
 ticketRouter.route("/").get(protect, getTickets).post(protect, createTicket);
 

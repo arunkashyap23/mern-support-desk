@@ -12,9 +12,9 @@ const NewTicket = () => {
   const { isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.tickets
   );
-  const [name, setName] = useState(user.name);
+  const [name] = useState(user.name);
   const [product, setProduct] = useState("");
-  const [email, setEmail] = useState(user.email);
+  const [email] = useState(user.email);
   const [description, setDescription] = useState("");
 
   const dispatch = useDispatch();
