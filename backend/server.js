@@ -4,6 +4,7 @@ import userRouter from "./routes/userRoutes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import colors from "colors";
 import connectDB from "./config/db.js";
+import ticketRouter from "./routes/ticketRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 
 //load routes
 app.use("/api/users", userRouter);
+app.use("/api/tickets", ticketRouter);
 
 app.use(errorHandler);
 
